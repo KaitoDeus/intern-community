@@ -1,7 +1,5 @@
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
-import Link from "next/link";
-import { ModuleCard } from "@/components/module-card";
 import { CategoryFilter } from "@/components/category-filter";
 import { SearchBar } from "@/components/search-bar";
 import { ModuleList } from "@/components/module-list";

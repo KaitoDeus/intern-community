@@ -1,22 +1,27 @@
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import Link from "next/link";
 import { ModuleCard } from "@/components/module-card";
+import { CategoryFilter } from "@/components/category-filter";
+import { SearchBar } from "@/components/search-bar";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
-// See: ISSUES.md for full acceptance criteria
+// Done: Implemented multi-select category filter with URL persistence.
 
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string }>;
+  searchParams: Promise<{ q?: string; category?: string | string[] }>;
 }) {
   const { q, category } = await searchParams;
+  const categoriesParam = Array.isArray(category) ? category : category ? [category] : [];
+
   const session = await auth();
 
   const modules = await db.miniApp.findMany({
     where: {
       status: "APPROVED",
-      ...(category ? { category: { slug: category } } : {}),
+      ...(categoriesParam.length > 0 ? { category: { slug: { in: categoriesParam } } } : {}),
       ...(q
         ? {
             OR: [
@@ -54,62 +59,24 @@ export default async function HomePage({
     <div className="space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Community Modules</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-foreground">Community Modules</h1>
+          <p className="text-sm text-muted-foreground">
             Discover mini-apps built by the Intern developer community.
           </p>
         </div>
 
-        <form className="flex gap-2">
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder="Search modules…"
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-          />
-          <button
-            type="submit"
-            className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          >
-            Search
-          </button>
-        </form>
+        <SearchBar />
       </div>
 
-      {/* Category filter placeholder — see TODO above */}
-      <div className="flex flex-wrap gap-2">
-        <a
-          href="/"
-          className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-            !category
-              ? "bg-blue-600 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-          }`}
-        >
-          All
-        </a>
-        {categories.map((c) => (
-          <a
-            key={c.id}
-            href={`/?category=${c.slug}`}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-              category === c.slug
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            {c.name}
-          </a>
-        ))}
-      </div>
+      <CategoryFilter categories={categories} />
 
       {modules.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
           <p className="text-gray-500">No modules found.</p>
           {q && (
-            <a href="/" className="mt-2 block text-sm text-blue-600 hover:underline">
+            <Link href="/" className="mt-2 block text-sm text-primary hover:underline transition-colors">
               Clear search
-            </a>
+            </Link>
           )}
         </div>
       ) : (

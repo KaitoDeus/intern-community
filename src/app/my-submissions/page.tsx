@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { DeleteSubmissionButton } from "@/components/delete-submission-button";
 
 const statusStyles: Record<string, string> = {
   PENDING: "bg-amber-500/10 text-amber-600 dark:text-amber-500 border-amber-500/20",
@@ -83,6 +84,9 @@ export default async function MySubmissionsPage() {
                 >
                   {sub.status}
                 </span>
+                {sub.status === "PENDING" && (
+                  <DeleteSubmissionButton id={sub.id} name={sub.name} />
+                )}
               </div>
             </div>
           ))}

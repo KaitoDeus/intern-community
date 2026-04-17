@@ -4,8 +4,6 @@ import "./globals.css";
 import { Navbar } from "@/components/navbar";
 import { AuthSessionProvider } from "@/components/session-provider";
 
-import { ThemeProvider } from "@/components/theme-provider";
-
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
 
 export const metadata: Metadata = {
@@ -16,16 +14,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${geist.variable} h-full antialiased`} suppressHydrationWarning>
-      <body className="flex min-h-full flex-col font-sans" suppressHydrationWarning>
-        <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem>
-          <AuthSessionProvider>
-            <Navbar />
-            <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
-              {children}
-            </main>
-          </AuthSessionProvider>
-        </ThemeProvider>
+    <html lang="en" className={`${geist.variable} h-full antialiased`}>
+      <body className="flex min-h-full flex-col font-sans">
+        <AuthSessionProvider>
+          <Navbar />
+          <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
+            {children}
+          </main>
+        </AuthSessionProvider>
       </body>
     </html>
   );

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ModuleCard } from "@/components/module-card";
 import { CategoryFilter } from "@/components/category-filter";
 import { SearchBar } from "@/components/search-bar";
+import { ModuleList } from "@/components/module-list";
 
 // TODO [medium-challenge]: Add category filter with URL query params (state persists on refresh)
 // Done: Implemented multi-select category filter with URL persistence.
@@ -31,14 +32,17 @@ export default async function HomePage({
           }
         : {}),
     },
-    // DO NOT remove include — avoids N+1 on category/author fields.
     include: {
       category: true,
       author: { select: { id: true, name: true, image: true } },
     },
     orderBy: { voteCount: "desc" },
-    take: 12,
+    take: 13, // Take 13 to check if there is a next page
   });
+
+  const hasMore = modules.length > 12;
+  const items = hasMore ? modules.slice(0, 12) : modules;
+  const nextCursor = hasMore ? items[items.length - 1].id : null;
 
   // Fetch which modules the current user has voted on
   let votedIds = new Set<string>();
@@ -46,12 +50,17 @@ export default async function HomePage({
     const votes = await db.vote.findMany({
       where: {
         userId: session.user.id,
-        moduleId: { in: modules.map((m) => m.id) },
+        moduleId: { in: items.map((m) => m.id) },
       },
       select: { moduleId: true },
     });
     votedIds = new Set(votes.map((v) => v.moduleId));
   }
+
+  const itemsWithVotes = items.map((m) => ({
+    ...m,
+    hasVoted: votedIds.has(m.id),
+  }));
 
   const categories = await db.category.findMany({ orderBy: { name: "asc" } });
 
@@ -70,26 +79,12 @@ export default async function HomePage({
 
       <CategoryFilter categories={categories} />
 
-      {modules.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
-          <p className="text-gray-500">No modules found.</p>
-          {q && (
-            <Link href="/" className="mt-2 block text-sm text-primary hover:underline transition-colors">
-              Clear search
-            </Link>
-          )}
-        </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
-            <ModuleCard
-              key={module.id}
-              module={module}
-              hasVoted={votedIds.has(module.id)}
-            />
-          ))}
-        </div>
-      )}
+      <ModuleList
+        initialItems={itemsWithVotes}
+        initialCursor={nextCursor}
+        searchQuery={q}
+        categories={categoriesParam}
+      />
     </div>
   );
 }

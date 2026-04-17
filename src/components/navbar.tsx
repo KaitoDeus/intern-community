@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { ThemeToggle } from "./theme-toggle";
 
 export function Navbar() {
   const { data: session } = useSession();
@@ -15,9 +14,6 @@ export function Navbar() {
         </Link>
 
         <div className="flex items-center gap-4">
-          <ThemeToggle />
-          <div className="h-4 w-[1px] bg-border" />
-          
           {session ? (
             <>
               <Link href="/submit" className="text-sm text-muted-foreground hover:text-foreground">
